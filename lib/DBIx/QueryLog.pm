@@ -111,6 +111,17 @@ for my $accessor (qw{
     };
 }
 
+sub filter {
+    my ($class, $maybe_filter) = @_;
+    return $container->{filter} || sub { 1 } unless $maybe_filter;
+    $container->{filter} = $maybe_filter;
+}
+
+sub reset_filter {
+    my ($class) = @_;
+    $container->{filter} = sub { 1 };
+}
+
 sub _st_execute {
     my ($class, $org) = @_;
 
@@ -342,6 +353,7 @@ sub _logging {
 
     my $threshold = $container->{threshold} || $ENV{DBIX_QUERYLOG_THRESHOLD};
     return unless !$threshold || $time > $threshold;
+    return unless $class->filter->($ret);
 
     $bind_params ||= [];
 
